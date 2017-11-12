@@ -1,6 +1,7 @@
 <?php
 
 /* @var $this \yii\web\View */
+
 /* @var $content string */
 
 use app\widgets\Alert;
@@ -39,10 +40,11 @@ AppAsset::register($this);
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
             ['label' => 'Home', 'url' => ['/site/index']],
+            ['label' => 'Users', 'url' => ['/site/users']],
             ['label' => 'About', 'url' => ['/site/about']],
             ['label' => 'Contact', 'url' => ['/site/contact']],
             Yii::$app->user->isGuest ? (
-                ['label' => 'Login', 'url' => ['/site/login']]
+            ['label' => 'Login', 'url' => ['/site/login']]
             ) : (
                 '<li>'
                 . Html::beginForm(['/site/logout'], 'post')
@@ -79,7 +81,7 @@ AppAsset::register($this);
 
 <?php
 
-if(!Yii::$app->user->isGuest){
+if (!Yii::$app->user->isGuest) {
     $userId = Yii::$app->user->getId();
 
     $this->registerJs(<<<JS
@@ -107,13 +109,13 @@ messaging.requestPermission()
 
         notifyAppServer(token);
     })
-    .catch(function () {
-        console.log('Permission Pending.');
+    .catch(function (e) {
+        console.log(e);
     });
 
 messaging.onMessage(function (message) {
     console.log('onMessage:', message);
-    var notification = new Notification('onMessage', message.notification);
+    var notification = new Notification(message.notification.title, message.notification);
 });
 
 function notifyAppServer(token){
@@ -124,16 +126,20 @@ function notifyAppServer(token){
         data: JSON.stringify({token: token, user_id: $userId}),
         method: 'POST',
         success: function(data){
-            console.log(data);
+            console.log('data:',data);
         },
         fail: function(xhr){
-            console.log(xhr.responseText);
+            console.log('error:',xhr.responseText);
         }
-    })
+    });
 }
 
+Notification.onclick = function(event) { 
+    console.log('event:',event);
+ };
+
 JS
-);
+    );
 }
 
 ?>

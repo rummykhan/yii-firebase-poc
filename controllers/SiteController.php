@@ -5,7 +5,10 @@ namespace app\controllers;
 use app\models\ContactForm;
 use app\models\LoginForm;
 use app\models\User;
+use Kerox\Fcm\Fcm;
+use Kerox\Fcm\Message\NotificationBuilder;
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -142,5 +145,38 @@ class SiteController extends Controller
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
         return ['user_id' => $id, 'token' => $token];
+    }
+
+    public function actionUsers()
+    {
+        $dataProvider = new ActiveDataProvider([
+            'query' => User::find(),
+            'pagination' => [
+                'pageSize' => 20
+            ]
+        ]);
+        return $this->render('users', compact('dataProvider'));
+    }
+
+    public function actionPush($id)
+    {
+        $user = User::findOne(['id' => $id]);
+        if (!$user) {
+            throw new NotFoundHttpException();
+        }
+
+        $fcm = new Fcm('AAAA9c8Bmxk:APA91bFN0SHOxdQ7PBOgTDAgj__LNwrPQzLCm9vL9LFxNUT7Be3uz4Y0as0FrNU-4zjVcSk_ZlphuzIpsRI4ezoIJTN9fYemBxLtV_0BiJqisebbwubh0MqDVGMGsXTY7uoQd2Gb3rno');
+        $builder = new NotificationBuilder('YII 2.0');
+
+        $notification = $builder->setIcon('https://avatars3.githubusercontent.com/u/12664104')
+            ->setBody('rummykhan was here!!')
+            ->setClickAction('<a href="http://www.google.com">Google</a>')
+            ->build();
+
+        $fcm->setOptions(['priority' => 'normal'])
+            ->setNotification($notification)
+            ->sendTo($user->realtime_token);
+
+        return $this->redirect('/site/users');
     }
 }

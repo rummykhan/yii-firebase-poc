@@ -54,6 +54,7 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'site/push/<id:\d+>' => 'site/push'
             ],
         ],
 
